@@ -1,15 +1,86 @@
 import * as React from 'react';
-import { StyleSheet } from 'react-native';
+import {Button, FlatList, StyleSheet, TextInput, VirtualizedList} from 'react-native';
 
-import EditScreenInfo from '../components/EditScreenInfo';
-import { Text, View } from '../components/Themed';
+import {Text, View} from '../components/Themed';
+import {useEffect, useState} from "react";
+import {getFriendsService} from "../services/friends.service";
 
 export default function TabTwoScreen() {
+
+  const [name, setName] = useState('');
+  const [pushToken, setPushToken] = useState('');
+  const [selected, setSelected] = useState('');
+  const [friends, setFriends] = useState([]);
+  const [refresh, setRefresh] = useState(false);
+
+  useEffect(() => {
+    getFriendsService().getFriends().then(result => {
+      setFriends(result);
+    })
+    getFriendsService().getSelected().then(result => {
+      setSelected(result);
+    })
+  }, []);
+
+  function removeFriend(name) {
+    getFriendsService().removeFriend(name);
+    reloadFriends();
+  }
+
+  function selectFriend(name) {
+    getFriendsService().setSelected(name);
+    reloadFriends();
+  }
+
+  function Item({item, active}) {
+    let style = styles.title;
+    if (active) {
+      style = styles.active;
+    }
+    console.log(style);
+    return <View style={styles.item}>
+      <Text style={style}>
+      <span onClick={() => selectFriend(item.name)}>
+        {item.name} ({item.pushToken})
+      </span>
+        <span onClick={() => removeFriend(item.name)}>X</span>
+      </Text>
+    </View>
+  }
+
+  const addFriend = (event) => {
+    event?.preventDefault();
+    getFriendsService().setFriend(name, pushToken);
+    reloadFriends();
+  }
+
+  const reloadFriends = () => {
+    return getFriendsService().getFriends().then(result => {
+      console.log(result);
+      setFriends(result);
+      setRefresh(true);
+      return friends;
+    });
+  }
+
+  const renderItem = ({item}) => <Item item={item} active={item.name === selected}/>;
+
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Tab Two</Text>
-      <View style={styles.separator} lightColor="#eee" darkColor="rgba(255,255,255,0.1)" />
-      <EditScreenInfo path="/screens/TabTwoScreen.tsx" />
+      <Text style={styles.title}>Add new friends</Text>
+      <form onSubmit={(event) => addFriend(event)}>
+        <div>
+          <TextInput placeholder="Navn" onChangeText={text => setName(text)}/>
+        </div>
+        <div>
+          <TextInput placeholder="Push token" onChangeText={text => setPushToken(text)}/>
+        </div>
+        <Button title="Tilføj" onPress={() => addFriend(null)}/>
+      </form>
+      <VirtualizedList refreshing={refresh} data={friends} renderItem={renderItem}
+                       keyExtractor={(item, index) => item.name} getItem={(data, index) => data[index]}
+                       getItemCount={() => friends.length ?? 1} onRefresh={() => setRefresh(false)}/>
+      <Button onPress={() => reloadFriends()} title="Genindlæs"/>
     </View>
   );
 }
@@ -20,9 +91,20 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  item: {
+    marginVertical: 8,
+    marginHorizontal: 16,
+  },
+  active: {
+    color: "#fff",
+    fontSize: 20,
+    fontWeight: 'bold',
+    textDecorationLine: "underline"
+  },
   title: {
     fontSize: 20,
     fontWeight: 'bold',
+    color: "#b0b0b0"
   },
   separator: {
     marginVertical: 30,

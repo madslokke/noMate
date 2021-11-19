@@ -2,6 +2,7 @@ import Constants from 'expo-constants';
 import * as Notifications from 'expo-notifications';
 import React, { useState, useEffect, useRef } from 'react';
 import { Text, View, Button, Platform } from 'react-native';
+import {getFriendsService} from "../services/friends.service";
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -14,6 +15,7 @@ Notifications.setNotificationHandler({
 export default function TestNotification() {
   const [expoPushToken, setExpoPushToken] = useState('');
   const [notification, setNotification]: any = useState('');
+  const [selected, setSelected] = useState('');
   const notificationListener: any = useRef();
   const responseListener: any = useRef();
 
@@ -34,6 +36,10 @@ export default function TestNotification() {
     };
   }, []);
 
+  getFriendsService().getSelected().then(result => {
+    setSelected(result);
+  })
+
   return (
     <View
       style={{
@@ -41,7 +47,8 @@ export default function TestNotification() {
         alignItems: 'center',
         justifyContent: 'space-around',
       }}>
-      <Text>Your expo push token: {expoPushToken}</Text>
+      <Text style={{color: "#345678"}}>Your expo push token: {expoPushToken}</Text>
+      <Text style={{color: "#345678"}}>Sender notifikation til: {selected}</Text>
       <View style={{ alignItems: 'center', justifyContent: 'center' }}>
         <Text>Title: {notification && notification.request.content.title} </Text>
         <Text>Body: {notification && notification.request.content.body}</Text>
