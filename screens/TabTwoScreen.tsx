@@ -9,7 +9,7 @@ export default function TabTwoScreen() {
 
   const [name, setName] = useState('');
   const [pushToken, setPushToken] = useState('');
-  const [selected, setSelected] = useState('');
+  const [selectedId, setSelectedId] = useState('');
   const [friends, setFriends] = useState([]);
   const [refresh, setRefresh] = useState(false);
 
@@ -17,18 +17,19 @@ export default function TabTwoScreen() {
     getFriendsService().getFriends().then(result => {
       setFriends(result);
     })
-    getFriendsService().getSelected().then(result => {
-      setSelected(result);
+    getFriendsService().getSelectedId().then(result => {
+      setSelectedId(result);
+      console.log(result);
     })
   }, []);
 
-  function removeFriend(name) {
-    getFriendsService().removeFriend(name);
+  function removeFriend(id) {
+    getFriendsService().removeFriend(id);
     reloadFriends();
   }
 
-  function selectFriend(name) {
-    getFriendsService().setSelected(name);
+  function selectFriend(id) {
+    getFriendsService().setSelected(id);
     reloadFriends();
   }
 
@@ -40,10 +41,10 @@ export default function TabTwoScreen() {
     console.log(style);
     return <View style={styles.item}>
       <Text style={style}>
-      <span onClick={() => selectFriend(item.name)}>
+      <span onClick={() => selectFriend(item.id)}>
         {item.name} ({item.pushToken})
       </span>
-        <span onClick={() => removeFriend(item.name)}>X</span>
+        <span onClick={() => removeFriend(item.id)}>X</span>
       </Text>
     </View>
   }
@@ -63,7 +64,7 @@ export default function TabTwoScreen() {
     });
   }
 
-  const renderItem = ({item}) => <Item item={item} active={item.name === selected}/>;
+  const renderItem = ({item}) => <Item item={item} active={item.id === selectedId}/>;
 
   return (
     <View style={styles.container}>

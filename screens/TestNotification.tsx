@@ -36,7 +36,8 @@ export default function TestNotification() {
     };
   }, []);
 
-  getFriendsService().getSelected().then(result => {
+  getFriendsService().getSelectedId().then(result => {
+    console.log(result);
     setSelected(result);
   })
 
