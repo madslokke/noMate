@@ -3,6 +3,7 @@ import * as Notifications from 'expo-notifications';
 import React, { useState, useEffect, useRef } from 'react';
 import { Text, View, Button, Platform } from 'react-native';
 import {getFriendsService} from "../services/friends.service";
+import {Accelerometer} from "expo-sensors";
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -18,6 +19,31 @@ export default function TestNotification() {
   const [selected, setSelected] = useState('');
   const notificationListener: any = useRef();
   const responseListener: any = useRef();
+  const [accelerometer, setAccelerometer] = useState({
+    x: 0,
+    y: 0,
+    z: 0,
+  });
+  const [subscription, setSubscription] = useState(null);
+
+
+  const _subscribe = () => {
+    setSubscription(
+      Accelerometer.addListener(accelerometerData => {
+        setAccelerometer(accelerometerData);
+      })
+    );
+  };
+
+  const _unsubscribe = () => {
+    subscription && subscription.remove();
+    setSubscription(null);
+  };
+
+  useEffect(() => {
+    _subscribe();
+    return () => _unsubscribe();
+  }, []);
 
   useEffect(() => {
     registerForPushNotificationsAsync().then((token: any) => setExpoPushToken(token));
@@ -41,6 +67,7 @@ export default function TestNotification() {
     setSelected(result);
   })
 
+  const { x, y, z } = accelerometer;
   return (
     <View
       style={{
@@ -55,6 +82,8 @@ export default function TestNotification() {
         <Text>Body: {notification && notification.request.content.body}</Text>
         <Text>Data: {notification && JSON.stringify(notification.request.content.data)}</Text>
       </View>
+      <Text style={{color: "#345678"}}>Sensor data:
+        x: {x} y: {y} z: {z}</Text>
       <Button
         title="Tilkald din ven"
         onPress={async () => {
